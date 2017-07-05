@@ -333,14 +333,12 @@
           upload._createXhr = xhrCreator({size: file.size, uploadTime: 200, stepTime: 50});
         });
 
-        it('should be in held status', function(done) {
+        it('should be in held status', function() {
           upload._addFile(file);
-          flush(function() {
-            expect(file.uploaded).not.to.be.ok;
-            expect(file.held).to.equal.true;
-            expect(file.status).to.be.equal(upload.i18n.uploading.status.held);
-            done();
-          });
+
+          expect(file.uploaded).not.to.be.ok;
+          expect(file.held).to.equal.true;
+          expect(file.status).to.be.equal(upload.i18n.uploading.status.held);
         });
 
         it('should start uploading non-completed files after call to uploadFiles', function(done) {
@@ -387,23 +385,21 @@
           upload.uploadFiles([upload.files[2]]);
         });
 
-        it('should start a file upload from the file-start event', function(done) {
+        it('should start a file upload from the file-start event', function() {
+          var spy = sinon.spy();
+          upload.addEventListener('upload-start', spy);
+
           upload._addFile(file);
-          flush(function() {
-            expect(file.uploaded).not.to.be.ok;
-            expect(file.held).to.equal.true;
-            expect(file.status).to.be.equal(upload.i18n.uploading.status.held);
 
-            upload.addEventListener('upload-start', function(e) {
-              expect(e.detail.xhr).to.be.ok;
-              expect(e.detail.file).to.be.ok;
-              expect(e.detail.file.uploading).to.be.ok;
+          expect(file.uploaded).not.to.be.ok;
+          expect(file.held).to.equal.true;
+          expect(file.status).to.be.equal(upload.i18n.uploading.status.held);
+          expect(spy.called).to.be.false;
 
-              done();
-            });
+          upload.fire('file-start', {file: file});
 
-            upload.fire('file-start', {file: file});
-          });
+          expect(file.uploading).to.be.ok;
+          expect(spy.called).to.be.true;
         });
       });
 
